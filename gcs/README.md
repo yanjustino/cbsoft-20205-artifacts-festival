@@ -36,7 +36,7 @@ To effectively utilize this artifact, follow these steps:
 
 1. **Clone the Repository**: Clone the repository containing this artifact to your local machine.
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/yanjustino/cbsoft-20205-artifacts-festival.git
    ```
 
 2. **Navigate to the Artifact Directory**: Move to the `gcs` directory where the artifact is located.
@@ -45,6 +45,9 @@ To effectively utilize this artifact, follow these steps:
    ```
 
 3. **Review the Questionnaire**: Open the [survey-000](./survey-000.md) file and review the template provided.
+
+> [!TIP]  
+> You can also use the [survey-001](./survey-001.md) file as an example for filling out the questionnaire.
 
 4. **Fill in the Template**: Replace all `<!-- TODO -->` placeholders with the relevant information for your study.
 
@@ -62,6 +65,3 @@ To effectively utilize this artifact, follow these steps:
 
 This artifact contributes to the CBSoft 2025 Artifacts Festival by promoting Open Science and enabling transparency, replication, validation, and reuse of research findings. It adheres to the guidelines for artifact submission and badging, ensuring it is both available and functional.
 
----
-
-CBSoft © 2023-2025 | Powered by [Themefisher](https://themefisher.com/) under [Eventre](https://themefisher.com/products/eventre-event-conference-website-template/) Theme.
