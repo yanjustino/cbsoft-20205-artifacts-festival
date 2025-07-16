@@ -14,21 +14,6 @@ The artifact aims to:
 - Highlight heterogeneity hotspots and identify risks.
 - Suggest actionable steps for improvement.
 
-## Structure
-
-The artifact includes the following sections:
-1. **Capability Identification**: Captures the name, business objective, and responsible teams for each capability.
-2. **Inventory of Implementation Units**: Documents each unit's type, name, description, team, usage frequency, change frequency, dependencies, and runtime details (for FaaS).
-3. **Mapping to Deployables**: Maps units to deployables, indicating their GCS level, pipeline type, data access, size, and latency.
-4. **Consolidation & Analysis**: Analyzes the distribution of units by GCS level, identifies heterogeneity hotspots, and outlines risks and suggested actions.
-
-## Usage
-
-To use this artifact:
-1. Replace all `<!-- TODO -->` markers in the questionnaire with real values.
-2. Follow the tips provided in each section to ensure accurate and comprehensive documentation.
-3. Commit the completed questionnaire to your repository with a clear message, e.g., "Granularity Report – <Capability>".
-4. Repeat the assessment periodically and save new versions in dated folders.
 
 ## How to Use
 
@@ -44,24 +29,96 @@ To effectively utilize this artifact, follow these steps:
    cd gcs
    ```
 
-3. **Review the Questionnaire**: Open the [survey-000](./survey-000.md) file and review the template provided.
+3. **Review the Templates**:
+   - Open the [template-assessment.md](./template-assessment.md) file to evaluate the granularity of software capabilities.
+   - Open the [template-mapping.md](./template-mapping.md) file to map implementation units to deployables.
 
-> [!TIP]  
-> You can also use the [survey-001](./survey-001.md) file as an example for filling out the questionnaire.
 
-4. **Fill in the Template**: Replace all `<!-- TODO -->` placeholders with the relevant information for your study.
-
+4. **Fill in the Templates**: Replace all `<!-- TODO -->` placeholders with the relevant information.
 5. **Commit Changes**: Save your changes and commit them to the repository with a meaningful message.
-   ```bash
-   git add survey-000.md
-   git commit -m "Completed Capability Granularity Mapping for <Capability>"
-   ```
-
 6. **Repeat Periodically**: Perform periodic assessments and save new versions in dated folders to track progress over time.
 
-7. **Share Results**: Share the completed artifact with your team or submit it for evaluation as part of CBSoft 2025.
 
-## Contribution to CBSoft 2025
+## Application of Assessment
 
-This artifact contributes to the CBSoft 2025 Artifacts Festival by promoting Open Science and enabling transparency, replication, validation, and reuse of research findings. It adheres to the guidelines for artifact submission and badging, ensuring it is both available and functional.
+The `template-assessment.md` file provides a structured questionnaire to evaluate the granularity of software capabilities based on the Granularity Classification Spectrum (GCS). This template is designed to help architects and engineers:
+
+1. **Locate Capabilities**: Identify where a capability lies on the GCS spectrum, ranging from Monolith to Nanoservice/FaaS.
+2. **Score Dimensions**: Evaluate dimensions such as business scope, deployment scope, independence, internal complexity, organizational factors, and performance.
+3. **Map Results**: Use the scoring table to map the capability to its corresponding GCS level.
+
+### How to Use the Template
+
+1. **Open the Template**: Navigate to the `gcs` directory and open the `template-assessment.md` file.
+2. **Answer Questions**: For each question, tick the alternative that best describes the capability today and record its score.
+3. **Calculate Total**: Sum the points to determine the GCS level using the scoring table provided in the template.
+4. **Document Findings**: Save the completed assessment in a dated folder for future reference.
+
+### Example Workflow
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yanjustino/cbsoft-20205-artifacts-festival.git
+   ```
+
+2. Navigate to the `gcs` directory:
+   ```bash
+   cd gcs
+   ```
+
+3. Open the template:
+   ```bash
+   nano template-assessment.md
+   ```
+
+4. Fill out the questionnaire and save changes.
+
+5. Commit the completed assessment:
+   ```bash
+   git add template-assessment.md
+   git commit -m "Completed Granularity Assessment for <Capability>"
+   ```
+
+## Application of Mapping
+
+The `template-mapping.md` file provides a structured approach to map implementation units to deployables and analyze their distribution across the Granularity Classification Spectrum (GCS). This template is designed to help architects and engineers:
+
+1. **Map Units**: Identify where each implementation unit runs and its corresponding GCS level.
+2. **Analyze Pipelines**: Evaluate the type of pipeline (shared, semi-independent, or independent) and data access patterns.
+3. **Assess Metrics**: Document size (LOC/MB) and latency (p95) for each unit.
+
+### How to Use the Template
+
+1. **Open the Template**: Navigate to the `gcs` directory and open the `template-mapping.md` file.
+2. **Fill in the Mapping Table**: Replace all `<!-- TODO -->` placeholders with the relevant information for each implementation unit.
+3. **Document Findings**: Save the completed mapping in a dated folder for future reference.
+
+### Example Workflow
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yanjustino/cbsoft-20205-artifacts-festival.git
+   ```
+
+2. Navigate to the `gcs` directory:
+   ```bash
+   cd gcs
+   ```
+
+3. Open the template:
+   ```bash
+   nano template-mapping.md
+   ```
+
+4. Fill out the mapping table and save changes.
+
+5. Commit the completed mapping:
+   ```bash
+   git add template-mapping.md
+   git commit -m "Completed Mapping for Implementation Units"
+   ```
+
+### Contribution to CBSoft 2025
+
+This template supports the CBSoft 2025 Artifacts Festival by providing a replicable artifact for mapping implementation units to deployables. It promotes transparency, reuse, and continuous improvement in software engineering research.
 
