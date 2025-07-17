@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GCS - Avaliação do Espectro de Classificação de Granularidade</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #555555;
+            background: #F5F5F5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: #FFFFFF;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(136, 136, 136, 0.08);
+        }
+
+        .header h1 {
+            color: #555555;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #888888;
+            font-size: 1.1em;
+        }
+
+        .gcs-diagram {
+            background: #FFFFFF;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(136, 136, 136, 0.08);
+        }
+
+        .gcs-diagram h3 {
+            text-align: center;
+            color: #555555;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .score-panel {
+            background: #FFFFFF;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(136, 136, 136, 0.08);
+            text-align: center;
+            transition: box-shadow 0.3s;
+        }
+
+        .score-panel-fixed {
+            position: fixed;
+            top: 120px;
+            right: calc(50% - 600px - 320px);
+            width: 280px;
+            z-index: 1000;
+            background: #FFFFFF;
+            box-shadow: 0 8px 32px rgba(136, 136, 136, 0.18);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 0;
+            transition: box-shadow 0.3s, top 0.3s, right 0.3s, width 0.3s;
+        }
+        @media (max-width: 900px) {
+            .score-panel-fixed {
+                width: 95vw;
+                left: 2.5vw;
+                right: unset;
+                top: 10px;
+            }
+        }
+        @media (max-width: 600px) {
+            .score-panel-fixed {
+                width: 98vw;
+                left: 1vw;
+                top: 0;
+                padding: 10px;
+            }
+        }
+
+        .score-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #555555;
+            margin-bottom: 10px;
+        }
+
+        .score-label {
+            font-size: 1.2em;
+            color: #888888;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #DDDDDD;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #888888;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .assessment-section {
+            background: #FFFFFF;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(136, 136, 136, 0.08);
+        }
+
+        .section-title {
+            color: #555555;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #BBBBBB;
+        }
+
+        .section-subtitle {
+            color: #888888;
+            font-size: 1.1em;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .question-group {
+            margin-bottom: 30px;
+        }
+
+        .question {
+            background: #F5F5F5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #BBBBBB;
+        }
+
+        .question-text {
+            font-weight: 600;
+            color: #555555;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: #FFFFFF;
+            border: 2px solid #DDDDDD;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            border-color: #888888;
+            background: #F5F5F5;
+        }
+
+        .option.selected {
+            border-color: #555555;
+            background: #DDDDDD;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .option label {
+            cursor: pointer;
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .option-score {
+            background: #BBBBBB;
+            color: #555555;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .results-section {
+            background: #FFFFFF;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(136, 136, 136, 0.08);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #F5F5F5;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #555555;
+        }
+
+        .result-value {
+            font-weight: bold;
+            color: #888888;
+        }
+
+        .export-btn {
+            background: #888888;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .export-btn:hover {
+            background: #555555;
+            color: #FFFFFF;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(136, 136, 136, 0.12);
+        }
+
+        .recommendation {
+            background: #BBBBBB;
+            color: #555555;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .recommendation h3 {
+            margin-bottom: 10px;
+            color: #555555;
+        }
+
+        .gcs-diagram {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .gcs-diagram h3 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .diagram-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .gcs-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            cursor: zoom-in;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            flex: 1;
+            margin: 0;
+        }
+
+        .help-icon {
+            background: #888888;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .help-icon:hover {
+            background: #555555;
+            transform: scale(1.1);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip-content {
+            visibility: hidden;
+            width: 300px;
+            background-color: #555555;
+            color: white;
+            text-align: left;
+            border-radius: 8px;
+            padding: 15px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9em;
+            line-height: 1.4;
+            box-shadow: 0 4px 16px rgba(136, 136, 136, 0.18);
+        }
+
+        .tooltip-content::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555555 transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-content {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #888888;
+        }
+
+        .tooltip-examples {
+            margin-top: 10px;
+            font-style: italic;
+            color: #BBBBBB;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .score-display {
+                font-size: 2.5em;
+            }
+            
+            .options {
+                flex-direction: column;
+            }
+        }
+
+        .score-panel-fixed .progress-bar {
+            height: 15px;
+        }
+
+        .gcs-level-display {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #DDDDDD;
+        }
+        .gcs-level-title {
+            font-size: 0.9em;
+            color: #888888;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .gcs-level-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #555555;
+            text-align: center;
+        }
+        .gcs-description {
+            background: #FFFFFF;
+            padding:30px;
+            border-radius:15px;
+            margin-bottom:30px;
+            box-shadow: 0 8px 32px rgba(136, 136, 136, 0.08);
+        }
+
+        .gcs-description h3 {
+            color: #555555;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #BBBBBB;
+        }
+
+        .gcs-description h4 {
+            color: #555555;
+            font-size: 1.2em;
+            margin: 20px 0 10px;
+            font-weight: 600;
+        }
+
+        .gcs-description p {
+            color: #555555;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .gcs-description ul {
+            margin: 15px;
+            padding-left: 20px;
+        }
+
+        .gcs-description li {
+            color: #555555;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .gcs-description strong {
+            color: #555555;
+        }
+
+        .help-button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .help-button {
+            background: #888888;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .help-button:hover {
+            background: #555555;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(136, 136, 136, 0.15);
+        }
+
+        .help-button .help-icon {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .clear-btn {
+            background: #BBBBBB;
+            color: #555555;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            margin-left: 10px;
+        }
+
+        .clear-btn:hover {
+            background: #888888;
+            color: #FFFFFF;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(136, 136, 136, 0.12);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-image {
+            display: block;
+            margin: auto;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+
+        .attributions {
+            background: #FFFFFF;
+            padding:30px;
+            margin-top:50px;
+            border-top:2px solid #DDDDDD;
+            text-align: center;
+        }
+
+        .attributions h3 {
+            color: #555555;
+            font-size: 1.3em;
+            margin-bottom:15px;
+        }
+
+        .attributions p {
+            color: #888888;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .attributions a {
+            color: #555555;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .attributions a:hover {
+            color: #888888;
+            text-decoration: underline;
+        }
+
+        .author-title {
+            font-size: 0.9em;
+            color: #BBBBBB !important;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="gcs-diagram">
+            <h3>Espectro de Classificação de Granularidade</h3>
+            <div class="diagram-container">
+                <img src="fig3.png" alt="Espectro de Classificação de Granularidade" class="gcs-image" onclick="openImageModal()">
+            </div>
+            <div class="help-button-container">
+                <button class="help-button" onclick="toggleGcsDescription()">
+                    <span class="help-icon">?</span>
+                    Como funciona o questionário?
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal para visualizar imagem -->
+        <div id="imageModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeImageModal()">&times;</span>
+                <img src="fig3.png" alt="Espectro de Classificação de Granularidade" class="modal-image">
+            </div>
+        </div>
+
+        <div class="gcs-description" id="gcsDescription" style="display: none;">
+            <h3>Como funciona o questionário GCS?</h3>
+            <p>O questionário GCS avalia sua capacidade através de <strong>12 perguntas</strong> distribuídas em <strong>7 dimensões críticas</strong>. Cada pergunta tem 4 opções de resposta, com pontuação de 0 a 3 pontos, totalizando um máximo de <strong>35pontos</strong>.</p>
+            
+            <h4>Dimensões avaliadas:</h4
+            <ul>
+                <li><strong>A. Escopo de Negócio</strong> - Avalia a amplitude funcional da capacidade</li>
+                <li><strong>B. Escopo de Implantação</strong> - Como a capacidade é empacotada e liberada</li>
+                <li><strong>C. Independência e Acoplamento</strong> - Isolamento de dados e dependências externas</li>
+                <li><strong>D. Complexidade Interna</strong> - Tamanho do código e coesão</li>
+                <li><strong>E. Organização e Equipes</strong> - Autonomia e foco das equipes</li>
+                <li><strong>F. Performance e Custo</strong> - Escalabilidade e sobrecarga operacional</li>
+                <li><strong>G. Observabilidade</strong> - Monitoramento e depuração da capacidade</li>
+            </ul>
+                        
+            <h4>Aplicação da Avaliação</h4     <p>O questionário GCS fornece uma estrutura para avaliar a granularidade de capacidades de software baseada no Espectro de Classificação de Granularidade (GCS). Esta ferramenta foi projetada para ajudar arquitetos e engenheiros a:</p>
+            
+            <ul>
+                <li><strong>Localizar Capacidades:</strong> Identificar onde uma capacidade se posiciona no espectro GCS, desde Monólito até Nanoserviço/FaaS</li>
+                <li><strong>Avaliar Dimensões:</strong> Pontuar dimensões como escopo de negócio, escopo de implantação, independência, complexidade interna, fatores organizacionais e performance</li>
+                <li><strong>Mapear Resultados:</strong> Usar a tabela de pontuação para mapear a capacidade ao seu nível GCS correspondente</li>
+            </ul>
+            
+            <p><strong>Dica:</strong> O painel lateral mostra sua pontuação e nível GCS em tempo real conforme você responde as perguntas. A questão 11 tem uma penalidade especial (-1 ponto) para sinalizar quando a fragmentação pode estar prejudicial.</p>
+        </div>
+
+        <div class="score-panel" id="scorePanel">
+            <div class="score-display" id="totalScore">0</div>
+            <div class="score-label">Pontuação Total</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div id="scoreDescription">Complete a avaliação para ver sua pontuação</div>
+            <div class="gcs-level-display" id="gcsLevelDisplay">
+                <div class="gcs-level-title">Nível GCS</div>
+                <div class="gcs-level-value" id="gcsLevelValue">-</div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h2 class="section-title">A. Escopo de Negócio</h2>
+            <p class="section-subtitle">Avalia a amplitude funcional da capacidade e quantas responsabilidades de negócio distintas ela gerencia. Capacidades mais focadas indicam melhor granularidade.</p>
+            
+            <div class="question-group">
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">1. Amplitude funcional: Quantas responsabilidades principais de negócio a capacidade contém?</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Amplitude Funcional</div>
+                                <p>Esta pergunta avalia quantas responsabilidades de negócio distintas sua capacidade gerencia. Uma responsabilidade de negócio é uma função específica que resolve um problema do domínio.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Múltiplas:</strong> Sistema que gerencia usuários, produtos, pedidos e pagamentos<br>
+                                    • <strong>2-3:</strong> Sistema que gerencia apenas pedidos e pagamentos<br>
+                                    • <strong>1 coesa:</strong> Sistema que gerencia apenas pedidos<br>
+                                    • <strong>1 específica:</strong> Sistema que apenas calcula frete
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q1" value="0" id="q1_0">
+                            <label for="q1_0">Mais de 3</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q1" value="1" id="q1_1">
+                            <label for="q1_1">2–3</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q1" value="2" id="q1_2">
+                            <label for="q1_2">Exatamente 1, coesa</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q1" value="3" id="q1_3">
+                            <label for="q1_3">Uma única função bem definida</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h2 class="section-title">B. Escopo de Implantação</h2>
+            <p class="section-subtitle">Avalia como a capacidade é empacotada e implantada. Implantação independente facilita evolução e escalabilidade.</p>
+            
+            <div class="question-group">
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">2. Forma de implantação: Como a capacidade é empacotada e implantada?</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Forma de Implantação</div>
+                                <p>Esta pergunta avalia como sua capacidade é empacotada e implantada no ambiente de produção. A granularidade de implantação afeta a independência e flexibilidade do sistema.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Grande artefato:</strong> WAR/JAR único com várias funcionalidades<br>
+                                    • <strong>Modular:</strong> Módulos internos mas deploy único<br>
+                                    • <strong>Independente:</strong> Container Docker ou VM separada<br>
+                                    • <strong>Serverless:</strong> Função AWS Lambda ou Azure Function
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q2" value="0" id="q2_0">
+                            <label for="q2_0">Parte de um grande artefato com várias capacidades</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q2" value="1" id="q2_1">
+                            <label for="q2_1">Aplicação modular única, mas sem implantação independente</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q2" value="2" id="q2_2">
+                            <label for="q2_2">Serviço independente (container/VM)</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q2" value="3" id="q2_3">
+                            <label for="q2_3">Função serverless / FaaS</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">3. Frequência de release: A capacidade é liberada…</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Frequência de Release</div>
+                                <p>Esta pergunta avalia a frequência e independência dos releases da sua capacidade. Releases mais frequentes e independentes indicam maior granularidade.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Grande lote:</strong> Release trimestral com várias funcionalidades<br>
+                                    • <strong>2-3 relacionadas:</strong> Release mensal com funcionalidades relacionadas<br>
+                                    • <strong>Independente:</strong> Release semanal da capacidade específica<br>
+                                    • <strong>Sob demanda:</strong> Deploy automático quando há mudanças
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q3" value="0" id="q3_0">
+                            <label for="q3_0">Junto com um grande lote de funcionalidades</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q3" value="1" id="q3_1">
+                            <label for="q3_1">Com 2–3 capacidades relacionadas</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q3" value="2" id="q3_2">
+                            <label for="q3_2">Independentemente</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q3" value="3" id="q3_3">
+                            <label for="q3_3">Sob demanda / acionada por eventos</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h2 class="section-title">C. Independência e Acoplamento</h2>
+            <p class="section-subtitle">Avalia o grau de isolamento de dados e dependências externas. Menos acoplamento e mais independência são desejáveis.</p>
+            
+            <div class="question-group">
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">4. Propriedade do banco de dados: A capacidade tem seu próprio banco de dados/esquema?</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Propriedade do Banco de Dados</div>
+                                <p>Esta pergunta avalia o nível de isolamento de dados da sua capacidade. Maior isolamento indica menor acoplamento e maior granularidade.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Compartilhado:</strong> Mesmo banco para usuários, produtos, pedidos<br>
+                                    • <strong>Esquemas separados:</strong> Mesmo banco, mas schemas diferentes<br>
+                                    • <strong>BD exclusivo:</strong> Banco dedicado para a capacidade<br>
+                                    • <strong>Sem estado:</strong> Função stateless ou dados transitórios
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q4" value="0" id="q4_0">
+                            <label for="q4_0">Compartilhado com várias funções</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q4" value="1" id="q4_1">
+                            <label for="q4_1">BD compartilhado, mas esquemas separados</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q4" value="2" id="q4_2">
+                            <label for="q4_2">Banco de dados exclusivo</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q4" value="3" id="q4_3">
+                            <label for="q4_3">Armazena apenas estado transitório ou nenhum estado</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">5. Integrações externas: Número de pontos de integração necessários para sua lógica principal</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Integrações Externas</div>
+                                <p>Esta pergunta avalia quantas dependências externas sua capacidade possui. Para FaaS e nanoserviços, 1-2 integrações bem definidas são comuns e saudáveis.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>0-1:</strong> Serviço autônomo ou função com uma integração específica<br>
+                                    • <strong>2-3:</strong> Função que integra 2-3 serviços (ex: S3 → Lambda → SNS)<br>
+                                    • <strong>4-6:</strong> Serviço com múltiplas dependências externas<br>
+                                    • <strong>> 6:</strong> Muitas dependências, alto acoplamento
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q5" value="0" id="q5_0">
+                            <label for="q5_0">> 6</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q5" value="1" id="q5_1">
+                            <label for="q5_1">4–6</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q5" value="2" id="q5_2">
+                            <label for="q5_2">2–3</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q5" value="3" id="q5_3">
+                            <label for="q5_3">0–1</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h2 class="section-title">D. Complexidade Interna</h2>
+            <p class="section-subtitle">Avalia o tamanho e a coesão do código. Menor complexidade e maior foco indicam granularidade adequada.</p>
+            
+            <div class="question-group">
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">6. Tamanho do código: Linhas de código aproximadas</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Tamanho do Código</div>
+                                <p>Esta pergunta avalia a complexidade da sua capacidade através do tamanho do código. Códigos menores geralmente indicam maior granularidade e foco.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>> 25k:</strong> Sistema monolítico grande (ERP, CRM)<br>
+                                    • <strong>10-25k:</strong> Módulo ou serviço médio<br>
+                                    • <strong>3-10k:</strong> Microserviço típico<br>
+                                    • <strong>< 3k:</strong> Função serverless ou serviço muito focado
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q6" value="0" id="q6_0">
+                            <label for="q6_0">> 25 k</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q6" value="1" id="q6_1">
+                            <label for="q6_1">10–25 k</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q6" value="2" id="q6_2">
+                            <label for="q6_2">3–10 k</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q6" value="3" id="q6_3">
+                            <label for="q6_3">< 3 k</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">7. Coesão: Classes / módulos abordam…</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Coesão</div>
+                                <p>Esta pergunta avalia o nível de coesão do código - quão focadas e relacionadas são as classes e módulos. Maior coesão indica melhor granularidade.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Heterogêneos:</strong> Classes que lidam com usuários, produtos, pedidos, pagamentos<br>
+                                    • <strong>Amplo relacionado:</strong> Classes focadas em e-commerce (produtos, pedidos, estoque)<br>
+                                    • <strong>Focado:</strong> Classes focadas apenas em gestão de pedidos<br>
+                                    • <strong>Especializada:</strong> Classes que fazem apenas cálculo de frete
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q7" value="0" id="q7_0">
+                            <label for="q7_0">Domínios de negócio heterogêneos</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q7" value="1" id="q7_1">
+                            <label for="q7_1">Um domínio amplo mas relacionado</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q7" value="2" id="q7_2">
+                            <label for="q7_2">Um domínio focado com poucas variações</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q7" value="3" id="q7_3">
+                            <label for="q7_3">Uma função especializada</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h2 class="section-title">E. Organização e Equipes</h2>
+            <p class="section-subtitle">Avalia a autonomia e o foco das equipes responsáveis. Menos equipes e mais autonomia favorecem granularidade.</p>
+            
+            <div class="question-group">
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">8. Propriedade da equipe: Quantas equipes mantêm esta capacidade?</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Propriedade da Equipe</div>
+                                <p>Esta pergunta avalia quantas equipes são responsáveis por manter a capacidade. Menos equipes indicam maior autonomia e granularidade organizacional.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Mais de 3:</strong> Equipes de frontend, backend, infraestrutura, QA<br>
+                                    • <strong>2-3:</strong> Equipe de backend + equipe de frontend<br>
+                                    • <strong>1 dedicada:</strong> Equipe responsável apenas por esta capacidade<br>
+                                    • <strong>< 1 FTE:</strong> Automatizado ou mantido como código
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q8" value="0" id="q8_0">
+                            <label for="q8_0">Mais de 3</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q8" value="1" id="q8_1">
+                            <label for="q8_1">2–3</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q8" value="2" id="q8_2">
+                            <label for="q8_2">Uma equipe dedicada</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q8" value="3" id="q8_3">
+                            <label for="q8_3">Menos de um FTE; mantido "como código"</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">9. Autonomia de decisão: Para evoluir a capacidade, a equipe depende de…</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Autonomia de Decisão</div>
+                                <p>Esta pergunta avalia o nível de autonomia da equipe para tomar decisões sobre a evolução da capacidade. Maior autonomia indica melhor granularidade organizacional.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Governança central:</strong> Precisa de aprovação de arquitetura, segurança, compliance<br>
+                                    • <strong>2-3 grupos:</strong> Precisa de aprovação de arquitetura + segurança<br>
+                                    • <strong>Product Owner:</strong> Apenas o PO precisa aprovar mudanças<br>
+                                    • <strong>Automação:</strong> Deploy automático com feature flags
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q9" value="0" id="q9_0">
+                            <label for="q9_0">Governança central + múltiplas aprovações</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q9" value="1" id="q9_1">
+                            <label for="q9_1">2–3 grupos</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q9" value="2" id="q9_2">
+                            <label for="q9_2">Apenas do seu Product Owner</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q9" value="3" id="q9_3">
+                            <label for="q9_3">Automação e feature flags</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h2 class="section-title">F. Performance e Custo</h2>
+            <p class="section-subtitle">Avalia a escalabilidade e a sobrecarga operacional. Granularidade adequada facilita escalar e reduz custos de coordenação.</p>
+            
+            <div class="question-group">
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">10. Escalabilidade: O componente escala…</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Escalabilidade</div>
+                                <p>Esta pergunta avalia como sua capacidade escala em resposta à demanda. Escalabilidade independente indica maior granularidade e flexibilidade.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Junto com sistema:</strong> Monólito que escala como um todo<br>
+                                    • <strong>2-3 relacionados:</strong> Grupo de serviços que escala junto<br>
+                                    • <strong>Independentemente:</strong> Serviço que escala isoladamente<br>
+                                    • <strong>Elasticamente:</strong> Função serverless que escala por invocação
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q10" value="0" id="q10_0">
+                            <label for="q10_0">Apenas junto com todo o sistema</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q10" value="1" id="q10_1">
+                            <label for="q10_1">Com 2–3 serviços relacionados</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q10" value="2" id="q10_2">
+                            <label for="q10_2">Independentemente</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q10" value="3" id="q10_3">
+                            <label for="q10_3">Elasticamente por invocação</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">11. Sobrecarga operacional: A fragmentação atual incorre em custo de coordenação que é…</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Sobrecarga Operacional</div>
+                                <p>Esta pergunta avalia o custo de coordenação entre serviços fragmentados. Alta sobrecarga pode indicar saturação de granularidade.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Baixo:</strong> Tudo local, sem latência de rede<br>
+                                    • <strong>Médio:</strong> Algumas chamadas remotas, latência aceitável<br>
+                                    • <strong>Notável:</strong> Chamadas remotas frequentes, mas controladas<br>
+                                    • <strong>Alto:</strong> Muitas chamadas remotas, latência dominante
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q11" value="0" id="q11_0">
+                            <label for="q11_0">Baixo porque tudo é local</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q11" value="1" id="q11_1">
+                            <label for="q11_1">Médio</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q11" value="2" id="q11_2">
+                            <label for="q11_2">Notável mas controlado</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="-1">
+                            <input type="radio" name="q11" value="-1" id="q11_neg1">
+                            <label for="q11_neg1">Alto; chamadas remotas dominam (subtrai 1 ponto)</label>
+                            <span class="option-score">-1</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px; padding: 10px; background: #F5F5F5; border-radius: 5px; font-size: 0.9em; color: #888888;">
+                        <strong>Nota sobre a Questão 11:</strong> A alternativa (d) subtrai 1 ponto para sinalizar que a fragmentação pode ter atingido um nível prejudicial (saturação de granularidade), onde o custo de comunicação entre serviços supera os benefícios da sua independência.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="assessment-section">
+            <h2 class="section-title">G. Observabilidade</h2>
+            <p class="section-subtitle">Avalia a facilidade de monitorar e depurar a capacidade. Maior observabilidade indica maturidade operacional e facilita a manutenção de arquiteturas distribuídas.</p>
+            
+            <div class="question-group">
+                <div class="question">
+                    <div class="question-header">
+                        <div class="question-text">12. Observabilidade: Como a saúde e o comportamento da capacidade são observados?</div>
+                        <div class="tooltip">
+                            <button class="help-icon" title="Clique para mais detalhes">?</button>
+                            <div class="tooltip-content">
+                                <div class="tooltip-title">Observabilidade</div>
+                                <p>Esta pergunta avalia a facilidade de monitorar e depurar a capacidade. Maior observabilidade indica maturidade operacional e facilita a manutenção de arquiteturas distribuídas.</p>
+                                <div class="tooltip-examples">
+                                    <strong>Exemplos:</strong><br>
+                                    • <strong>Logs manuais:</strong> Logs em arquivos ou sem padrão definido<br>
+                                    • <strong>Centralizado reativo:</strong> Métricas e logs centralizados, mas reativos<br>
+                                    • <strong>Tracing proativo:</strong> Tracing distribuído e alertas proativos<br>
+                                    • <strong>Automatizado:</strong> SLOs de negócio e depuração em tempo real
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="options">
+                        <div class="option" data-score="0">
+                            <input type="radio" name="q12" value="0" id="q12_0">
+                            <label for="q12_0">Logs manuais em arquivos ou sem padrão</label>
+                            <span class="option-score">0</span>
+                        </div>
+                        <div class="option" data-score="1">
+                            <input type="radio" name="q12" value="1" id="q12_1">
+                            <label for="q12_1">Métricas e logs centralizados, mas reativos</label>
+                            <span class="option-score">1</span>
+                        </div>
+                        <div class="option" data-score="2">
+                            <input type="radio" name="q12" value="2" id="q12_2">
+                            <label for="q12_2">Tracing distribuído e alertas proativos implementados</label>
+                            <span class="option-score">2</span>
+                        </div>
+                        <div class="option" data-score="3">
+                            <input type="radio" name="q12" value="3" id="q12_3">
+                            <label for="q12_3">Métricas de negócio (SLOs) e depuração em tempo real totalmente automatizadas</label>
+                            <span class="option-score">3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h2 class="section-title">Resultados da Avaliação</h2>
+            
+            <div class="result-item">
+                <span class="result-label">Escopo de Negócio:</span>
+                <span class="result-value" id="businessScore">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Escopo de Implantação:</span>
+                <span class="result-value" id="deploymentScore">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Independência e Acoplamento:</span>
+                <span class="result-value" id="independenceScore">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Complexidade Interna:</span>
+                <span class="result-value" id="complexityScore">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Organização e Equipes:</span>
+                <span class="result-value" id="organizationScore">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Performance e Custo:</span>
+                <span class="result-value" id="performanceScore">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Observabilidade:</span>
+                <span class="result-value" id="observabilityScore">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Nível GCS:</span>
+                <span class="result-value" id="gcsLevel">-</span>
+            </div>
+
+            <div class="recommendation" id="recommendation">
+                <h3>Recomendações</h3>
+                <p id="recommendationText">Complete a avaliação para ver as recomendações</p>
+            </div>
+
+            <button class="export-btn" onclick="exportResults()">Exportar Resultados</button>
+            <button class="clear-btn" onclick="clearForm()">Limpar Formulário</button>
+        </div>
+    </div>
+
+    <!-- Atribuições -->
+    <div class="attributions">
+        <div class="container">
+            <p><a href="https://www.linkedin.com/in/yanjustino/" target="_blank" rel="noopener noreferrer">Yan Justino</a></p>
+            <p class="author-title">Staff Software Engineer | PhD Candidate in Software Engineering | AWS Certified | MSc</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do assessment GCS
+        const questions = {
+            'q1': { category: 'business', maxScore: 3, dimension: 'Functional breadth' },
+            'q2': { category: 'deployment', maxScore: 3, dimension: 'Deployment form' },
+            'q3': { category: 'deployment', maxScore: 3, dimension: 'Release frequency' },
+            'q4': { category: 'independence', maxScore: 3, dimension: 'Database ownership' },
+            'q5': { category: 'independence', maxScore: 3, dimension: 'External integrations' },
+            'q6': { category: 'complexity', maxScore: 3, dimension: 'Code size' },
+            'q7': { category: 'complexity', maxScore: 3, dimension: 'Cohesion' },
+            'q8': { category: 'organization', maxScore: 3, dimension: 'Team ownership' },
+            'q9': { category: 'organization', maxScore: 3, dimension: 'Decision autonomy' },
+            'q10': { category: 'performance', maxScore: 3, dimension: 'Scalability' },
+            'q11': { category: 'performance', maxScore: 3, dimension: 'Operational overhead' },
+            'q12': { category: 'observability', maxScore: 3, dimension: 'Monitoring and debugging' }
+        };
+
+        const categories = {
+            'business': { name: 'Business Scope', questions: 1 },
+            'deployment': { name: 'Deployment Scope', questions: 2 },
+            'independence': { name: 'Independence & Coupling', questions: 2 },
+            'complexity': { name: 'Internal Complexity', questions: 2 },
+            'organization': { name: 'Organisation & Teams', questions: 2 },
+            'performance': { name: 'Performance & Cost', questions: 2 },
+            'observability': { name: 'Observability', questions: 1 }
+        };
+
+        let scores = {};
+
+        // Inicializar scores
+        Object.keys(categories).forEach(category => {
+            scores[category] = 0;
+        });
+
+        // Adicionar event listeners para todas as opções
+        document.addEventListener('DOMContentLoaded', function() {
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    const radio = this.querySelector('input[type="radio"]');
+                    const questionName = radio.name;
+                    const score = parseInt(radio.value);
+                    
+                    // Remover seleção anterior da mesma pergunta
+                    const previousSelected = document.querySelector(`input[name="${questionName}"]:checked`);
+                    if (previousSelected) {
+                        previousSelected.closest('.option').classList.remove('selected');
+                    }
+                    
+                    // Selecionar nova opção
+                    radio.checked = true;
+                    this.classList.add('selected');
+                    
+                    // Atualizar scores
+                    updateScores(questionName, score);
+                });
+            });
+        });
+
+        function updateScores(questionName, score) {
+            const category = questions[questionName].category;
+            scores[category] = score;
+            
+            // Recalcular scores das categorias
+            Object.keys(categories).forEach(cat => {
+                const categoryQuestions = Object.keys(questions).filter(q => questions[q].category === cat);
+                let totalScore = 0;
+                let answeredQuestions = 0;
+                
+                categoryQuestions.forEach(q => {
+                    const selectedOption = document.querySelector(`input[name="${q}"]:checked`);
+                    if (selectedOption) {
+                        totalScore += parseInt(selectedOption.value);
+                        answeredQuestions++;
+                    }
+                });
+                
+                if (answeredQuestions > 0) {
+                    scores[cat] = totalScore;
+                }
+            });
+            
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0);
+            const maxPossibleScore = 35; // Maximum GCS score (32 + 3 for observability)
+            const percentage = (totalScore / maxPossibleScore) * 100;
+            
+            document.getElementById('totalScore').textContent = totalScore;
+            document.getElementById('progressBar').style.width = percentage + '%';
+            
+            // Determine GCS Level
+            let gcsLevel = '';
+            let description = '';
+            
+            if (totalScore >= 30) {
+                gcsLevel = 'Nanoservice / FaaS';
+                description = 'Fragmentação máxima, execução orientada a eventos – observe a saturação.';
+            } else if (totalScore >= 26) {
+                gcsLevel = 'Microservice – Focado';
+                description = 'Função isolada, alta coesão e independência.';
+            } else if (totalScore >= 21) {
+                gcsLevel = 'Microservice – Intermediário';
+                description = 'Serviço cobre um subconjunto coeso; integra com vários pares.';
+            } else if (totalScore >= 17) {
+                gcsLevel = 'Microservice – Estendido';
+                description = 'Uma capacidade por serviço; poucas dependências externas.';
+            } else if (totalScore >= 13) {
+                gcsLevel = 'Service-Based';
+                description = 'Ainda serviços grandes; dicas iniciais de subdomínio, baixo isolamento.';
+            } else if (totalScore >= 9) {
+                gcsLevel = 'Monólito Modular';
+                description = 'Limites internos claros mas sem implantação independente.';
+            } else if (totalScore >= 0) {
+                gcsLevel = 'Monolítico';
+                description = 'Capacidade é parte de um grande bloco – considere extração inicial.';
+            }
+            
+            document.getElementById('scoreDescription').textContent = description;
+            document.getElementById('gcsLevelValue').textContent = gcsLevel;
+            document.getElementById('gcsLevel').textContent = gcsLevel;
+            // Mostrar/ocultar painel GCS no painel lateral
+            // (Agora sempre visível, não precisa de display:none)
+            
+            // Atualizar scores das categorias
+            document.getElementById('businessScore').textContent = scores.business + '/3';
+            document.getElementById('deploymentScore').textContent = scores.deployment + '/6';
+            document.getElementById('independenceScore').textContent = scores.independence + '/6';
+            document.getElementById('complexityScore').textContent = scores.complexity + '/6';
+            document.getElementById('organizationScore').textContent = scores.organization + '/6';
+            document.getElementById('performanceScore').textContent = scores.performance + '/4';
+            document.getElementById('observabilityScore').textContent = scores.observability + '/3';
+            
+            // Mostrar seção de resultados se pelo menos uma pergunta foi respondida
+            const answeredQuestions = document.querySelectorAll('input[type="radio"]:checked').length;
+            if (answeredQuestions > 0) {
+                document.getElementById('resultsSection').style.display = 'block';
+                updateRecommendations();
+            }
+        }
+
+        function updateRecommendations() {
+            const totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0);
+            let recommendations = [];
+            
+            // GCS-based recommendations
+            if (totalScore >= 30) {
+                recommendations.push('Observe a saturação de granularidade - considere consolidação de serviços');
+                recommendations.push('Monitore a Intensidade de Invocação Remota (RVI) e Elasticidade (E)');
+            } else if (totalScore >= 26) {
+                recommendations.push('Granularidade excelente - mantenha a arquitetura atual');
+                recommendations.push('Foque na excelência operacional e monitoramento');
+            } else if (totalScore >= 21) {
+                recommendations.push('Considere decomposição adicional de serviços para melhor isolamento');
+                recommendations.push('Melhore a autonomia da equipe e independência de implantação');
+            } else if (totalScore >= 17) {
+                recommendations.push('Extraia serviços mais focados das capacidades atuais');
+                recommendations.push('Implemente o padrão database per service');
+            } else if (totalScore >= 13) {
+                recommendations.push('Comece a extração de serviços do monólito');
+                recommendations.push('Estabeleça limites claros de domínio');
+            } else if (totalScore >= 9) {
+                recommendations.push('Comece com monólito modular antes da extração de serviços');
+                recommendations.push('Defina limites claros de módulos internos');
+            } else if (totalScore >= 0) {
+                recommendations.push('Considere extração inicial de serviços');
+                recommendations.push('Identifique contextos limitados para decomposição futura');
+            }
+            
+            // Category-specific recommendations
+            if (scores.business < 2) {
+                recommendations.push('Foque no princípio da responsabilidade única');
+            }
+            if (scores.deployment < 4) {
+                recommendations.push('Implemente capacidades de implantação independente');
+            }
+            if (scores.independence < 4) {
+                recommendations.push('Reduza dependências externas e acoplamento');
+            }
+            if (scores.complexity < 4) {
+                recommendations.push('Simplifique a complexidade do código e reduza o tamanho');
+            }
+            if (scores.organization < 4) {
+                recommendations.push('Melhore a autonomia da equipe e tomada de decisão');
+            }
+            if (scores.performance < 2) {
+                recommendations.push('Otimize a escalabilidade e reduza a sobrecarga operacional');
+            }
+            if (scores.observability < 2) {
+                recommendations.push('Implemente observabilidade adequada para facilitar monitoramento e depuração');
+            }
+            
+            document.getElementById('recommendationText').innerHTML = recommendations.join('<br>');
+        }
+
+        function exportResults() {
+            const results = {
+                totalScore: Object.values(scores).reduce((sum, score) => sum + score, 0),
+                categoryScores: scores,
+                timestamp: new Date().toISOString(),
+                recommendations: document.getElementById('recommendationText').innerText
+            };
+            
+            const dataStr = JSON.stringify(results, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'assessment-microsservicos.json';
+            link.click();
+        }
+
+        function clearForm() {
+            // Limpar todas as seleções
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+                radio.closest('.option').classList.remove('selected');
+            });
+            
+            // Zerar scores
+            Object.keys(scores).forEach(category => {
+                scores[category] = 0;
+            });
+            
+            // Atualizar display
+            updateDisplay();
+            
+            // Ocultar seção de resultados
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            // Resetar recomendações
+            document.getElementById('recommendationText').innerHTML = 'Complete a avaliação para ver as recomendações';
+            
+            // Voltar para o topo da página
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Fixar painel de pontuação ao rolar
+        document.addEventListener('DOMContentLoaded', function() {
+            const scorePanel = document.getElementById('scorePanel');
+            const initialOffset = scorePanel.offsetTop;
+            const panelHeight = scorePanel.offsetHeight;
+
+            function handleScroll() {
+                if (window.scrollY > initialOffset) {
+                    scorePanel.classList.add('score-panel-fixed');
+                } else {
+                    scorePanel.classList.remove('score-panel-fixed');
+                }
+            }
+            window.addEventListener('scroll', handleScroll);
+        });
+
+        function toggleGcsDescription() {
+            const gcsDescription = document.getElementById('gcsDescription');
+            if (gcsDescription.style.display === 'none') {
+                gcsDescription.style.display = 'block';
+            } else {
+                gcsDescription.style.display = 'none';
+            }
+        }
+
+        // Modal para visualizar imagem
+        function openImageModal() {
+            document.getElementById('imageModal').style.display = 'block';
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        // Fechar modal ao clicar fora da imagem
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target == modal) {
+                closeImageModal();
+            }
+        });
+    </script>
+</body>
+</html> 
