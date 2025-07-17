@@ -41,6 +41,8 @@ For each question, tick the alternative that best describes the capability **tod
 
 ## Scoring & GCS Mapping
 
+![alt text](fig3.png)
+
 1.  **Add up** the points (maximum score = **35**).
 2.  **Locate** the total in the table below to determine the granularity level.
 
