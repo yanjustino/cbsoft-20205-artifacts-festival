@@ -22,9 +22,9 @@ class ElasticityPrinter:
         print_line()
 
         print(f"{'Quarter'.center(9)}|"
-              f"{'SUM MSA'.rjust(9)}|"
+              f"{'TMS'.rjust(9)}|"
               f"{'RVI GRA'.rjust(9)}|"
-              f"{'RVI PRO'.rjust(9)}|"
+              f"{'RVI EFT'.rjust(9)}|"
               f"{'RVI OPE'.rjust(9)}|"
               f"{'RVI COD'.rjust(9)}|"
               f"{'RVI FIN'.rjust(9)}|"
@@ -36,7 +36,7 @@ class ElasticityPrinter:
 
     @staticmethod
     def print_footer():
-        print("MSA = Microservice; GRA = Granularity; PRO = Process; OPE = Operation; COD = Code;")
+        print("TMS = Total of Microservice; GRA = Granularity; PRO = Process; OPE = Operation; COD = Code;")
         print("FIN = Financial; TOT = Total")
 
 

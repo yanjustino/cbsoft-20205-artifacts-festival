@@ -52,6 +52,7 @@ class Elasticity:
         delta_rvi = math.log(current.total + e) - math.log(previous.total + e)
         delta_msa = math.log(current.tms + e) - math.log(previous.tms + e)
         elast_tot = (delta_rvi / delta_msa)
+        elast_tot_normalized = math.tanh(elast_tot)
 
         return Elasticity(
             period=current.period,
@@ -62,5 +63,5 @@ class Elasticity:
             cod=current.code,
             fin=current.financial,
             rvi=current.total,
-            elt = elast_tot
+            elt = elast_tot_normalized
         )
