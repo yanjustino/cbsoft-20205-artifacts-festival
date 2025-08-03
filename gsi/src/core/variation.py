@@ -16,6 +16,8 @@ class Variation:
         self.cov = cov  # Coverage Variation
         self.cst = cst  # Infrastructure Cost variation
 
+        codeTemp = (loc + cyc + cov) / weight.total
+
         self.granularity = nms / weight.total  # rvi of granularity
         self.effort = (tmb + eft) / weight.total  # rvi of process
         self.operation = fch / weight.total  # rvi of operation
@@ -28,6 +30,7 @@ class Variation:
         e = 10e-6
 
         def calculate(c, p): return (c - p) / (p + e)
+
 
         return Variation(
             weight=weight,
@@ -45,12 +48,12 @@ class Variation:
 
     def to_string(self):
         def format_value(value, size): 
-            return f"|{f'{round(value, 4):.4f}'.rjust(size)}"
+            return f"|{f'{round(value, 2):.2f}'.rjust(size)}"
 
         print(f"{self.period.center(9)}" +
               format_value(self.nms, 9) +
-              format_value(self.eft, 9) +
               format_value(self.tmb, 9) +
+              format_value(self.eft, 9) +
               format_value(self.fch, 9) +
               format_value(self.loc, 9) +
               format_value(self.cyc, 9) +

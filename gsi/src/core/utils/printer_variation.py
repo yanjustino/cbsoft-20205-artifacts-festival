@@ -18,10 +18,10 @@ def log_header():
 
     print_line()
     print(f"{'Quarter'.center(9)}" +
-          format('𝜸(MSA)') +
+          format('𝜸(NMS)') +
           format('𝜸(TMB)') +
           format('𝜸(EFT)') +
-          format('𝜸(CHG)') +
+          format('𝜸(FCH)') +
           format('𝜸(LOC)') +
           format('𝜸(CYC)') +
           format('𝜸(COV)') +
