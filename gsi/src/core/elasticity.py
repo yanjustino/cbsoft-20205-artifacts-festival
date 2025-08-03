@@ -4,7 +4,7 @@ from src.core.variation import Variation
 
 
 class Elasticity:
-    def __init__(self, period="", tms=0., rvi=0., gra=0., eft=0., ope=0., cod=0., fin=0., elt=0.):
+    def __init__(self, period="", tms=0., rvi=0., gra=0., eft=0., ope=0., cod=0., fin=0., elt=0., eln=0.):
         self.period = period # period
         self.tms = tms # total of microservices
         self.gra = gra # rvi of granularity
@@ -14,18 +14,18 @@ class Elasticity:
         self.fin = fin # rvi of financial
         self.rvi = rvi # rvi total
         self.elt = elt # elasticity
+        self.eln = eln # elasticity normalized
         self.cls = ""
 
-        if elt > 1:
+        self.cls = "(U)"
+        if elt > 0.75:
             self.cls = "(H)"
-        elif 0 < elt < 1:
+        if 0 < elt <= 0.75:
             self.cls = "(R)"
-        elif elt == 0:
+        if elt < 0.1:
             self.cls = "(S)"
-        elif elt < 0:
+        if elt < 0:
             self.cls = "(A)"
-        else:
-            self.cls = "U"
 
 
     def to_string(self):
@@ -41,6 +41,7 @@ class Elasticity:
               format_value(self.fin, 9) +
               format_value(self.rvi, 9) +
               format_value(self.elt, 9) +
+              format_value(self.eln, 9) +
               f"|\033[33m{f'{self.cls}'.center(9)}\033[0m"
               )
 
@@ -63,5 +64,6 @@ class Elasticity:
             cod=current.code,
             fin=current.financial,
             rvi=current.total,
-            elt = elast_tot_normalized
+            elt=elast_tot,
+            eln=elast_tot_normalized,
         )

@@ -1,7 +1,7 @@
 from src.core.elasticity import Elasticity
 
 
-def print_line(): print(f"{'+'.rjust(10, '-')}" * 10)
+def print_line(): print(f"{'+'.rjust(10, '-')}" * 11)
 
 
 class ElasticityPrinter:
@@ -30,6 +30,7 @@ class ElasticityPrinter:
               f"{'RVI FIN'.rjust(9)}|"
               f"{'RVI TOT'.rjust(9)}|"
               f"{'𝓔'.rjust(9)}|"
+              f"{'𝓔n'.rjust(9)}|"
               f"{'class'.center(9)}")
 
         print_line()
@@ -42,10 +43,11 @@ class ElasticityPrinter:
 
         print()
         print("Elasticity..: \033[33m𝓔 = ∆ln(IRC)/∆ln(MSA)\033[0m".ljust(70))
+        print("Elasticity..: \033[33m𝓔n = tanh(𝓔)\033[0m".ljust(70))
         print()
         print("CLASSIFICATION".ljust(70))
-        print("(H) = \033[33m𝓔 > 1 | High Variation Zone\033[0m".ljust(70))
-        print("(R) = \033[33m0 < 𝓔 < 1 | Reduced Variation Zone\033[0m".ljust(70))
-        print("(S) = \033[33m𝓔 = 0 | Saturation Zone\033[0m".ljust(70))
-        print("(A) = \033[33m𝓔 < 0 | Adverse Effect Zone\033[0m".ljust(70))
+        print("(H) = \033[33m tanh(𝓔) > 0.75      | High Variation Zone\033[0m".ljust(70))
+        print("(R) = \033[33m 0 < tanh(𝓔) <= 0.75 | Reduced Variation Zone\033[0m".ljust(70))
+        print("(S) = \033[33m tanh(𝓔) < 0.10      | Saturation Zone\033[0m".ljust(70))
+        print("(A) = \033[33m tanh(𝓔) < 0.00      | Adverse Effect Zone\033[0m".ljust(70))
         print()
